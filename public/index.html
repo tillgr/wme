@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <title>WME Course Exercise 5 &bull; Skeleton - REST API</title>
+    <meta name="description"
+          content="Skeleton for the third course exercise HTML and CSS of the lecture Web and Multimedia Engineering">
+    <meta name="author" content="FIXME">
+    <meta name="keywords" content="Web and Multimedia Engineering, Course, Exercise">
+
+    <link href="assets/css/html5reset.css" type="text/css" rel="stylesheet">
+    <link href='https://fonts.googleapis.com/css?family=Roboto:400,300,300italic,400italic,500,500italic,700,700italic'
+          rel='stylesheet' type='text/css'>
+    <link href="assets/css/font-awesome/css/font-awesome.min.css" rel="stylesheet">
+    <link href="assets/css/style.css" type="text/css" rel="stylesheet">
+</head>
+
+<body>
+
+<header id="sticky_header">
+    <nav class="container clearfix" role="navigation">
+        <a class="logo" href="/"><img src="assets/img/world_data-logo.svg" alt="world_data logo within the navigation"/></a>
+        <ul id="main_nav" class="clearfix">
+            <li>
+                <a href=""><i class="fa fa-list-ul"></i>A1 - Table</a>
+            </li>
+            <li>
+                <a href=""><i class="fa fa-list-ul"></i>A2 - Parse</a>
+            </li>
+            <li>
+                <a href=""><i class="fa fa-list-ul"></i>A2 - Save</a>
+            </li>
+            <li>
+                <a href=""><i class="fa fa-list-ul"></i>A2 - Print</a>
+            </li>
+            <li>
+                <a href=""><i class="fa fa-list-ul"></i>A3 - REST</a>
+            </li>
+            <li>
+                <a href=""><i class="fa fa-list-ul"></i>A4 - Vis</a>
+            </li>
+            <li>
+                <a href=""><i class="fa fa-list-ul"></i>A5 - 3D</a>
+            </li>
+        </ul>
+        <a href="#" id="pull"><i class="fa fa-list-ul"></i></a>
+    </nav>
+</header>
+<section id="site-container" class="container">
+    <div id="three-container" class="container"></div>
+
+    <select id="prop_selection" class="selections">
+        <!--load options via ajax-->
+    </select>
+
+    <select id="time_selection" class="selections">
+        <option value="1">Day</option>
+        <option value="2">Night</option>
+        <option value="3">Dark</option>
+    </select>
+</section>
+<footer>
+    <div class="container">
+        <div>
+            <p>
+                Fifth course exercise of the lecture Web and Multimedia Engineering.
+            </p>
+        </div>
+        <div class="right">
+            <p>
+                This solution has been created by:<br>
+                Till Große
+            </p>
+        </div>
+    </div>
+</footer>
+
+<script type="text/javascript" src="assets/js/jquery-3.3.1.min.js"></script>
+<script src="./assets/js/three.js"></script>
+<script type="text/javascript" src="assets/js/ajax.js"></script>
+<script src="./assets/js/TrackballControls.js"></script>
+<script src="//unpkg.com/three-globe"></script>
+
+
+<script>
+    document.getElementById('site-container').style.height = ((1170 * window.innerHeight) / window.innerWidth).toString() + 'px';
+
+    let started = false;
+
+    function killNode() {
+        let killNode = document.getElementsByTagName('canvas')[0];
+        killNode.parentNode.removeChild(killNode);
+    }
+
+    function createGlobe() {
+        if (started) {
+            killNode()
+        } else {
+            started = !started;
+        }
+
+        // Gen random data
+        const N = 24;
+        let gData = [];
+
+        for (let i = 0; i <= N; i++) {
+            gData.push(
+                {
+                    lat: lats[i],
+                    lng: longs[i],
+                    size: normalizedSizes[i],
+                    color: colors[i]
+                }
+            );
+        }
+
+        let Globe = new ThreeGlobe()
+            .bumpImageUrl('//unpkg.com/three-globe/example/img/earth-topology.png')
+            .globeImageUrl('//unpkg.com/three-globe/example/img/earth-blue-marble.jpg')
+            .pointsData(gData)
+            .pointAltitude('size')
+            .pointColor('color');
+
+        $('#time_selection').on('change', function (e) {
+            let timeSelection = $('#time_selection option:selected').val();
+
+            switch (timeSelection) {
+                case "1":
+                    Globe.globeImageUrl('//unpkg.com/three-globe/example/img/earth-blue-marble.jpg');
+                    break;
+
+                case "2":
+                    Globe.globeImageUrl('//unpkg.com/three-globe/example/img/earth-night.jpg');
+                    break;
+
+                case "3":
+                    Globe.globeImageUrl('//unpkg.com/three-globe/example/img/earth-dark.jpg');
+                    break;
+            }
+        });
+
+        //setup renderer
+        const renderer = new THREE.WebGLRenderer();
+        renderer.setSize(1170, (1170 * window.innerHeight) / window.innerWidth);
+
+        let container = document.getElementById('three-container');
+        container.appendChild(renderer.domElement)
+
+        // Setup scene
+        const scene = new THREE.Scene();
+        scene.add(Globe);
+        scene.add(new THREE.AmbientLight(0xbbbbbb));
+        scene.add(new THREE.DirectionalLight(0xffffff, 0.6));
+
+        // Setup camera
+        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        camera.updateProjectionMatrix();
+        camera.position.z = 300;
+
+        // Add camera controls
+        const tbControls = new THREE.TrackballControls(camera, renderer.domElement);
+        tbControls.minDistance = 101;
+        tbControls.rotateSpeed = 5;
+        tbControls.zoomSpeed = 0.8;
+
+        // Kick-off renderer
+        (function animate() { // IIFE
+            // Frame cycle
+            tbControls.update();
+            renderer.render(scene, camera);
+            requestAnimationFrame(animate);
+        })();
+    }
+</script>
+</body>
+</html>
